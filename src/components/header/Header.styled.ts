@@ -1,6 +1,9 @@
-import styled from "styled-components";
-import MAppBar from "@material-ui/core/AppBar";
-import MTab from "@material-ui/core/Tab";
+import styled from "@emotion/styled";
+import MAppBar from "@mui/material/AppBar";
+import MTab from "@mui/material/Tab";
+import Box from "@mui/material/Box";
+
+import * as Typo from "@/components/typography";
 
 export const LogoContainer = styled.div`
     display: flex;
@@ -10,24 +13,24 @@ export const LogoContainer = styled.div`
     width: 100%;
 `;
 
-export const Square = styled.div`
-    width: 7px;
-    height: 18px;
-
-    margin-right: 5px;
-
-    background-color: #0fb48e;
-`;
-
 export const AppBar = styled(MAppBar)`
     display: flex;
     justify-content: center;
 
-    height: 140px;
-
-    background: #fff;
-
+    height: 100px;
     user-select: none;
 `;
 
 export const Tab = styled(MTab)``;
+
+export const TabLabelWrapper = styled(Box)`
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+`;
+
+export const TabText = styled(Typo.Typography)`
+    .MuiTab-textColorPrimary {
+        color: red;
+    }
+`;
