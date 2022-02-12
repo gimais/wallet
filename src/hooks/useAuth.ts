@@ -1,30 +1,40 @@
 import { useCallback } from "react";
+import { toast } from "react-toastify";
 
 import { useWeb3React } from "@web3-react/core";
 import { NoEthereumProviderError } from "@web3-react/injected-connector";
+import { NoBscProviderError } from "@binance-chain/bsc-connector";
 
-import { injected } from "@/common/connectors";
+import { CONNECTORS, Connector } from "@/common/connectors";
 
 const useAuth = () => {
-    const { chainId, activate, deactivate } = useWeb3React();
+    const { activate, deactivate } = useWeb3React();
 
-    const login = useCallback(() => {
-        activate(
-            injected,
-            (error: Error) => {
-                if (error instanceof NoEthereumProviderError) {
-                    console.error("Provider Error", "No provider was found");
-                } else {
-                    console.error(error.name, error.message);
-                }
-            },
-            true
-        );
-    }, [activate]);
+    const login = useCallback(
+        (connectorName: Connector) => {
+            const connector = CONNECTORS[connectorName];
+
+            activate(
+                connector,
+                (error: Error) => {
+                    if (
+                        error instanceof NoEthereumProviderError ||
+                        error instanceof NoBscProviderError
+                    ) {
+                        toast(`No provider was found`);
+                    } else {
+                        toast(error.message);
+                    }
+                },
+                false
+            );
+        },
+        [activate]
+    );
 
     const logout = useCallback(() => {
         deactivate();
-    }, [deactivate, chainId]);
+    }, [deactivate]);
 
     return { login, logout };
 };

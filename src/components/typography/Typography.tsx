@@ -8,6 +8,15 @@ export const Typography = styled<ITypographyProps>((props) => (
     <MuiTypography {...props} />
 ))``;
 
+export const Paragraph = styled<ITypographyProps>((props) => (
+    <MuiTypography
+        {...props}
+        style={{
+            textTransform: "none",
+        }}
+    />
+))``;
+
 export const H1 = styled<ITypographyProps>((props) => (
     <Typography {...props} variant="h1" />
 ))``;

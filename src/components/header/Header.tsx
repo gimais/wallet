@@ -1,34 +1,21 @@
-import { memo, useState, useRef } from "react";
-import { useHistory } from "react-router-dom";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { memo, useState, useRef, useEffect } from "react";
+import { useHistory, useLocation } from "react-router-dom";
 
-import {
-    Grid,
-    Toolbar,
-    Container,
-    Typography,
-    Tabs as MuiTabs,
-    IconButton,
-    ListItem,
-    Box,
-    Drawer,
-    List,
-    ListItemText,
-} from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import useMediaQuery from "@mui/material/useMediaQuery";
+import { Grid, Toolbar, Container, Tabs as MuiTabs } from "@mui/material";
 
 import ROUTES from "@/routes";
-import WalletConnector from "@/components/wallet-connector";
+import UserMenu from "@/components/user-menu";
 
 import {
     AppBar,
-    LogoContainer,
     Tab,
     TabLabelWrapper,
     TabText,
+    RightedTextGrid,
 } from "./Header.styled";
 
-type ITab = {
+type TabType = {
     title: string;
     path: string;
 };
@@ -41,10 +28,7 @@ const a11yProps = (index: number) => {
 };
 
 const Header = () => {
-    const history = useHistory();
-    const matches = useMediaQuery("(min-width:960px)");
-
-    const { current: tabs } = useRef<ITab[]>([
+    const { current: tabs } = useRef<TabType[]>([
         {
             title: "Home",
             path: ROUTES.HOME,
@@ -53,131 +37,74 @@ const Header = () => {
             title: "Account",
             path: ROUTES.ACCOUNT,
         },
-        {
-            title: "Token",
-            path: ROUTES.TOKEN,
-        },
     ]);
+    const history = useHistory();
+    const location = useLocation();
     const [currentTab, setCurrentTab] = useState(0);
-    const [mobileOpen, setMobileOpen] = useState(false);
 
-    const drawer = (
-        <Box sx={{ width: 240 }}>
-            <List>
-                {tabs.map(({ title, path }) => (
-                    <ListItem
-                        button
-                        key={title}
-                        onClick={() => history.push(path)}
-                    >
-                        <ListItemText primary={title} />
-                    </ListItem>
-                ))}
-            </List>
-        </Box>
-    );
+    useEffect(() => {
+        const tabIndex = tabs.findIndex(
+            (tab) => tab.path === location.pathname
+        );
 
-    const handleTabClick = (_event: any, newValue: number) => {
-        history.push(tabs[newValue].path);
-        setCurrentTab(newValue);
+        redirect(tabIndex === -1 ? 0 : tabIndex);
+    }, [location.pathname, tabs]);
+
+    const redirect = (tabsIndex: number) => {
+        history.push(tabs[tabsIndex].path);
+        setCurrentTab(tabsIndex);
     };
 
-    const handleDrawerToggle = () => {
-        setMobileOpen(!mobileOpen);
+    const handleTabClick = (_event: any, newValue: number) => {
+        redirect(newValue);
     };
 
     return (
-        <>
-            <AppBar position="static" style={{ backgroundColor: "tomato" }}>
-                <Container disableGutters>
-                    <Grid container spacing={0}>
-                        <Grid item xs={matches ? 3 : 9}>
-                            <LogoContainer>
-                                <Typography variant="h2">LOGO</Typography>
-                            </LogoContainer>
-                        </Grid>
-                        {matches ? (
-                            <>
-                                <Grid item xs={7}>
-                                    <Toolbar>
-                                        <MuiTabs
-                                            indicatorColor="primary"
-                                            value={currentTab}
-                                            onChange={handleTabClick}
-                                            aria-label="app navigation"
-                                            textColor="primary"
-                                            TabIndicatorProps={{
-                                                hidden: false,
-                                                style: {
-                                                    backgroundColor: "purple",
-                                                    height: "4px",
-                                                },
-                                            }}
-                                        >
-                                            {tabs.map(({ title }, _idx) => (
-                                                <Tab
-                                                    key={_idx}
-                                                    label={
-                                                        <TabLabelWrapper fontWeight="fontWeightBold">
-                                                            <TabText
-                                                                color="textSecondary"
-                                                                variant="h6"
-                                                            >
-                                                                {title}
-                                                            </TabText>
-                                                        </TabLabelWrapper>
-                                                    }
-                                                    {...a11yProps(_idx)}
-                                                    disableRipple
-                                                />
-                                            ))}
-                                        </MuiTabs>
-                                    </Toolbar>
-                                </Grid>
-                                <Grid
-                                    item
-                                    xs={2}
-                                    style={{
-                                        textAlign: "center",
-                                        margin: "auto",
-                                    }}
-                                >
-                                    <WalletConnector />
-                                </Grid>
-                            </>
-                        ) : (
-                            <Grid item xs={3}>
-                                <Toolbar
-                                    style={{
-                                        justifyContent: "flex-end",
-                                    }}
-                                >
-                                    <IconButton
-                                        size="large"
-                                        edge="end"
-                                        color="inherit"
-                                        aria-label="menu"
-                                        sx={{ mr: 2 }}
+        <AppBar position="fixed">
+            <Container>
+                <Grid container spacing={0}>
+                    <Grid item xs={7}>
+                        <Toolbar>
+                            <MuiTabs
+                                indicatorColor="primary"
+                                value={currentTab}
+                                onChange={handleTabClick}
+                                aria-label="app navigation"
+                                textColor="primary"
+                                TabIndicatorProps={{
+                                    hidden: false,
+                                    style: {
+                                        backgroundColor: "#f7d839",
+                                        height: "4px",
+                                    },
+                                }}
+                            >
+                                {tabs.map(({ title }, _idx) => (
+                                    <Tab
+                                        key={_idx}
+                                        label={
+                                            <TabLabelWrapper fontWeight="fontWeightBold">
+                                                <TabText
+                                                    color="textSecondary"
+                                                    variant="h6"
+                                                >
+                                                    {title}
+                                                </TabText>
+                                            </TabLabelWrapper>
+                                        }
+                                        {...a11yProps(_idx)}
                                         disableRipple
-                                        onClick={handleDrawerToggle}
-                                    >
-                                        <MenuIcon />
-                                    </IconButton>
-                                </Toolbar>
-                            </Grid>
-                        )}
+                                    />
+                                ))}
+                            </MuiTabs>
+                        </Toolbar>
                     </Grid>
-                </Container>
-            </AppBar>
-
-            <Drawer
-                anchor="right"
-                open={mobileOpen}
-                onClose={() => setMobileOpen(false)}
-            >
-                {drawer}
-            </Drawer>
-        </>
+                    <RightedTextGrid item xs={5}>
+                        <UserMenu />
+                    </RightedTextGrid>
+                </Grid>
+            </Container>
+        </AppBar>
     );
 };
 

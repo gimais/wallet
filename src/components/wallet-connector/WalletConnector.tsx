@@ -1,113 +1,71 @@
 import React from "react";
 
-import { styled, alpha } from "@mui/material/styles";
-import Menu, { MenuProps } from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-
+// mui
+import Modal from "@mui/material/Modal";
+import Stack from "@mui/material/Stack";
+import CloseIcon from "@mui/icons-material/Close";
 import Button from "@mui/material/Button";
-import AccountBalanceWallet from "@mui/icons-material/AccountBalanceWallet";
 
-import useActiveWeb3React from "@/hooks/useActiveWeb3React";
-import useAuth from "@/hooks/useAuth";
+import { Typography, H6 } from "@/components/typography";
+import { Connector } from "@/common/connectors";
 
-import { H6 } from "@/components/typography";
+import {
+    ModalBox,
+    ModalHeader,
+    ModalBody,
+    WalletBox,
+} from "./WalletConnector.styled";
 
-const StyledMenu = styled((props: MenuProps) => (
-    <Menu
-        elevation={0}
-        anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "right",
-        }}
-        transformOrigin={{
-            vertical: "top",
-            horizontal: "right",
-        }}
-        {...props}
-    />
-))(({ theme }) => ({
-    "& .MuiPaper-root": {
-        borderRadius: 6,
-        marginTop: theme.spacing(1),
-        minWidth: 180,
-        color:
-            theme.palette.mode === "light"
-                ? "rgb(55, 65, 81)"
-                : theme.palette.grey[300],
-        boxShadow:
-            "rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px",
-        "& .MuiMenu-list": {
-            padding: "4px 0",
+type Props = {
+    onConnect: (connector: Connector) => void;
+};
+
+type WalletProps = {
+    label: string;
+    image: string;
+    onClick: () => void;
+};
+
+type Wallet = {
+    label: string;
+    image: string;
+    connector: Connector;
+};
+
+const WalletItem = ({ label, image, onClick }: WalletProps) => (
+    <WalletBox onClick={onClick}>
+        <H6 paragraph noWrap gutterBottom>
+            {label}
+        </H6>
+        <img src={image} width="80px" alt={`${label} Wallet`} />
+    </WalletBox>
+);
+
+const WalletConnector = ({ onConnect }: Props) => {
+    const { current: wallets } = React.useRef<Wallet[]>([
+        {
+            label: "MetaMask",
+            image: "https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg",
+            connector: Connector.Injected,
         },
-        "& .MuiMenuItem-root": {
-            "& .MuiSvgIcon-root": {
-                fontSize: 18,
-                color: theme.palette.text.secondary,
-                marginRight: theme.spacing(1.5),
-            },
-            "&:active": {
-                backgroundColor: alpha(
-                    theme.palette.primary.main,
-                    theme.palette.action.selectedOpacity
-                ),
-            },
+        {
+            label: "Binance Chain",
+            image: "https://bscxplorer.com/static/favicon/BSC/logo.svg",
+            connector: Connector.BSC,
         },
-    },
-}));
+    ]);
+    const [open, setOpen] = React.useState<boolean>(false);
 
-const WalletConnector = () => {
-    const { library, chainId, account, active } = useActiveWeb3React();
-    const auth = useAuth();
+    const handleOpen = () => setOpen(true);
 
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    const open = Boolean(anchorEl);
+    const handleClose = () => setOpen(false);
 
-    const handleConnectWallet = (_event: any) => {
-        auth.login();
-    };
+    const handleClick = (connector: Connector) => onConnect(connector);
 
-    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleClose = () => {
-        auth.logout();
-        setAnchorEl(null);
-    };
-
-    if (account)
-        return (
-            <>
-                <Button
-                    onClick={handleClick}
-                    style={{
-                        backgroundColor: "#46ff03a3",
-                        color: "white",
-                    }}
-                    disableRipple
-                >
-                    <AccountBalanceWallet />
-                    <H6>{"0x..." + account.slice(-4)}</H6>
-                </Button>
-                <StyledMenu
-                    id="demo-customized-menu"
-                    MenuListProps={{
-                        "aria-labelledby": "demo-customized-button",
-                    }}
-                    anchorEl={anchorEl}
-                    open={open}
-                    onClose={handleClose}
-                >
-                    <MenuItem onClick={handleClose} disableRipple>
-                        Disconnect
-                    </MenuItem>
-                </StyledMenu>
-            </>
-        );
-    else {
-        return (
+    return (
+        <>
             <Button
-                onClick={handleConnectWallet}
+                onClick={handleOpen}
                 style={{
                     backgroundColor: "#46ff03a3",
                     color: "white",
@@ -116,8 +74,44 @@ const WalletConnector = () => {
             >
                 Connect to wallet
             </Button>
-        );
-    }
+
+            <Modal
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <ModalBox>
+                    <ModalHeader>
+                        <Typography>Connect Wallet</Typography>
+                        <CloseIcon
+                            onClick={handleClose}
+                            sx={{
+                                ":hover": {
+                                    cursor: "pointer",
+                                    opacity: "0.75",
+                                },
+                            }}
+                        />
+                    </ModalHeader>
+                    <ModalBody>
+                        <Stack spacing={12} direction="row">
+                            {wallets.map((wallet) => (
+                                <WalletItem
+                                    key={wallet.label}
+                                    label={wallet.label}
+                                    image={wallet.image}
+                                    onClick={() =>
+                                        handleClick(wallet.connector)
+                                    }
+                                />
+                            ))}
+                        </Stack>
+                    </ModalBody>
+                </ModalBox>
+            </Modal>
+        </>
+    );
 };
 
 export default WalletConnector;
